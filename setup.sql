@@ -1,4 +1,3 @@
-
 INSERT users (name) VALUES("taro");
 INSERT users (name) VALUES("kenta");
 INSERT rooms VALUES();  
