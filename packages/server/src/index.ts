@@ -1,10 +1,8 @@
-import { prisma } from "./modules/app/index.js";
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { createNodeWebSocket } from "@hono/node-ws";
-import { WSContext } from "hono/ws";
 import { roomRoute } from "./modules/rooms/index.js";
-import { userRoute, usersRoute } from "./modules/index.js";
+import { wsMessagesEvents, userRoute, usersRoute } from "./modules/index.js";
 
 export interface ReceivedMessage {
   content: string;
@@ -25,55 +23,9 @@ const app = new Hono()
 
 const { upgradeWebSocket, injectWebSocket } = createNodeWebSocket({ app });
 
-const wsMap = new Map<number, WSContext>();
-const roomUserIdsMap = new Map<number, number[]>();
-
 const route = app.get(
   "/ws-messages",
-  upgradeWebSocket(() => {
-    return {
-      async onMessage(event, ws) {
-        const data = await JSON.parse(event.data.toString());
-
-        if (data.senderId && !data?.content) {
-          wsMap.set(data.senderId, ws);
-          return;
-        }
-
-        let roomMemberIds: number[] = [];
-
-        const roomMemberIdsFromMap = roomUserIdsMap.get(data.roomId);
-
-        if (roomMemberIdsFromMap) {
-          roomMemberIds = roomMemberIdsFromMap;
-        } else {
-          const roomUsers = await prisma.roomUser.findMany({
-            where: {
-              roomId: data.roomId,
-            },
-          });
-
-          roomMemberIds = roomUsers.map(({ userId }) => userId);
-          roomUserIdsMap.set(data.roomId, roomMemberIds);
-        }
-
-        const targetRoomMemberIds = roomMemberIds.filter(
-          (id) => id !== data.senderId,
-        );
-
-        targetRoomMemberIds.forEach((id) => {
-          const memberWs = wsMap.get(id);
-          if (memberWs) {
-            memberWs.send(JSON.stringify(data));
-          }
-        });
-
-        await prisma.message.create({
-          data,
-        });
-      },
-    };
-  }),
+  upgradeWebSocket(() => wsMessagesEvents),
 );
 
 const server = serve({
