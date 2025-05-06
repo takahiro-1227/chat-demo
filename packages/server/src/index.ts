@@ -4,6 +4,7 @@ import { serve } from "@hono/node-server";
 import { createNodeWebSocket } from "@hono/node-ws";
 import { WSContext } from "hono/ws";
 import { roomRoute } from "./modules/rooms/index.js";
+import { userRoute, usersRoute } from "./modules/index.js";
 
 export interface ReceivedMessage {
   content: string;
@@ -19,19 +20,8 @@ const PORT = 4000;
 
 const app = new Hono()
   .route("/room", roomRoute)
-  .get("/user/:userId", async (c) => {
-    const userId = Number(c.req.param("userId"));
-
-    const user = await prisma.user.findUnique({
-      where: {
-        id: userId,
-      },
-    });
-
-    return c.json({
-      user,
-    });
-  });
+  .route("/users", usersRoute)
+  .route("/user", userRoute);
 
 const { upgradeWebSocket, injectWebSocket } = createNodeWebSocket({ app });
 

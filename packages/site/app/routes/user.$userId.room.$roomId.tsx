@@ -1,9 +1,9 @@
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import clsx from "clsx";
-import { hc } from "hono/client";
-import { app, ReceivedMessage } from "../../../server";
+import { ReceivedMessage } from "../../../server";
 import { useState, ChangeEventHandler, useEffect } from "react";
 import { useLoaderData, Link } from "@remix-run/react";
+import { client } from "../client";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [{ title: `トーク - from ${data?.me.name} to ${data?.you.name}` }];
@@ -21,8 +21,6 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   if (!userId || !roomId) {
     throw new Error("パスパラメータが不正です。");
   }
-
-  const client = hc<app>("http://localhost:4000");
 
   const [{ messages, users }, { user }] = await Promise.all([
     client.room[":roomId"]
@@ -70,7 +68,6 @@ export default function Index() {
   }, [room.messages]);
 
   useEffect(() => {
-    const client = hc<app>("http://localhost:4000");
     const socket = client["ws-messages"].$ws(0);
 
     setWs(socket);
@@ -116,7 +113,9 @@ export default function Index() {
 
   return (
     <>
-      <Link to="/">戻る</Link>
+      <Link className="underline" to="/">
+        戻る
+      </Link>
       <h1 className="text-xl">
         チャット from {me.name} to {you.name}
       </h1>

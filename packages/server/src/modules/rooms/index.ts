@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { prisma } from "../app/index.js";
 
-const roomRoute = new Hono().get("/:roomId", async (c) => {
+export const roomRoute = new Hono().get("/:roomId", async (c) => {
   const roomId = Number(c.req.param("roomId"));
 
   const [messages, users] = await Promise.all([
@@ -26,5 +26,3 @@ const roomRoute = new Hono().get("/:roomId", async (c) => {
 
   return c.json({ messages, users });
 });
-
-export { roomRoute };
