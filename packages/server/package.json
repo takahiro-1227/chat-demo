@@ -2,7 +2,7 @@
   "name": "server",
   "type": "module",
   "scripts": {
-    "dev": "tsc-watch --onSuccess \"node dist/src/index.js\"",
+    "dev": "tsc-watch --onSuccess \"node dist/index.js\"",
     "build": "tsc",
     "fix": "prettier --write . && eslint --cache --cache-location ./node_modules/.cache/eslint ."
   },
