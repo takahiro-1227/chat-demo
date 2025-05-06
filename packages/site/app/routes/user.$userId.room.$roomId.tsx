@@ -109,6 +109,8 @@ export default function Index() {
         content: input,
       },
     ]);
+
+    setInput("");
   };
 
   return (
@@ -119,7 +121,7 @@ export default function Index() {
       <h1 className="text-xl">
         チャット from {me.name} to {you.name}
       </h1>
-      <div className="mt-4 w-full flex flex-col gap-2">
+      <div className="mt-4 w-full min-h-96 flex flex-col gap-2">
         {messages.map(({ content, senderId }, i) => {
           return (
             <div
