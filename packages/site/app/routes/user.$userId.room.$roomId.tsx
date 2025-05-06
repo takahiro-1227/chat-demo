@@ -5,11 +5,8 @@ import { app, ReceivedMessage } from "../../../server";
 import { useState, ChangeEventHandler, useEffect } from "react";
 import { useLoaderData } from "@remix-run/react";
 
-export const meta: MetaFunction = () => {
-  return [
-    { title: "New Remix App" },
-    { name: "description", content: "Welcome to Remix!" },
-  ];
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+  return [{ title: `トーク - from ${data?.me.name} to ${data?.you.name}` }];
 };
 
 interface DisplayedMessage {
@@ -27,7 +24,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
 
   const client = hc<app>("http://localhost:4000");
 
-  const [{ messages }, { user }] = await Promise.all([
+  const [{ messages, users }, { user }] = await Promise.all([
     client.room[":roomId"]
       .$get({
         param: {
@@ -52,9 +49,12 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   ]);
 
   return {
-    messages,
-    user,
-    roomId: Number(roomId),
+    room: {
+      id: Number(roomId),
+      messages,
+    },
+    you: users.find((roomUser) => roomUser.id !== user.id)!,
+    me: user,
   };
 };
 
@@ -63,15 +63,11 @@ export default function Index() {
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [messages, setMessages] = useState<DisplayedMessage[]>([]);
 
-  const {
-    messages: initialMessages,
-    user,
-    roomId,
-  } = useLoaderData<typeof loader>();
+  const { room, you, me } = useLoaderData<typeof loader>();
 
   useEffect(() => {
-    setMessages(initialMessages);
-  }, [initialMessages]);
+    setMessages(room.messages);
+  }, [room.messages]);
 
   useEffect(() => {
     const client = hc<app>("http://localhost:4000");
@@ -82,7 +78,7 @@ export default function Index() {
     socket.onopen = () => {
       socket.send(
         JSON.stringify({
-          senderId: user.id,
+          senderId: me.id,
         }),
       );
     };
@@ -92,7 +88,7 @@ export default function Index() {
     };
 
     return () => socket.close();
-  }, [user.id]);
+  }, [me.id]);
 
   const inputMsg: ChangeEventHandler<HTMLInputElement> = ({ target }) => {
     setInput(target.value);
@@ -103,8 +99,8 @@ export default function Index() {
       return;
     }
     const messageObj: ReceivedMessage = {
-      senderId: user.id,
-      roomId,
+      senderId: me.id,
+      roomId: room.id,
       content: input,
     };
 
@@ -112,7 +108,7 @@ export default function Index() {
     setMessages((prev) => [
       ...prev,
       {
-        senderId: user.id,
+        senderId: me.id,
         content: input,
       },
     ]);
@@ -121,7 +117,9 @@ export default function Index() {
   return (
     <div className="w-full flex justify-center">
       <div className="max-w-lg w-full flex flex-col">
-        <h1>チャット from {user.name}</h1>
+        <h1 className="text-xl">
+          チャット from {me.name} to {you.name}
+        </h1>
         <div className="mt-4 w-full flex flex-col gap-2">
           {messages.map(({ content, senderId }, i) => {
             return (
@@ -129,8 +127,8 @@ export default function Index() {
                 key={`${content}-${i}`}
                 className={clsx({
                   ["flex"]: true,
-                  ["text-left justify-start"]: senderId !== user.id,
-                  ["text-right justify-end"]: senderId === user.id,
+                  ["text-left justify-start"]: senderId !== me.id,
+                  ["text-right justify-end"]: senderId === me.id,
                 })}
               >
                 <p

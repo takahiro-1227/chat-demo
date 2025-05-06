@@ -1,8 +1,9 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "./modules/app/index.js";
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { createNodeWebSocket } from "@hono/node-ws";
 import { WSContext } from "hono/ws";
+import { roomRoute } from "./modules/rooms/index.js";
 
 export interface ReceivedMessage {
   content: string;
@@ -14,32 +15,10 @@ export interface ReceivedSenderId {
   senderId: number;
 }
 
-interface Message {
-  id: number;
-  content: string;
-  senderId: number;
-  roomId: number;
-}
-
 const PORT = 4000;
 
-const prisma = new PrismaClient();
-
 const app = new Hono()
-  .get("/room/:roomId", async (c) => {
-    const roomId = Number(c.req.param("roomId"));
-
-    const messages: Message[] = await prisma.message.findMany({
-      where: {
-        roomId,
-      },
-      orderBy: {
-        createdAt: "asc",
-      },
-    });
-
-    return c.json({ messages });
-  })
+  .route("/room", roomRoute)
   .get("/user/:userId", async (c) => {
     const userId = Number(c.req.param("userId"));
 
