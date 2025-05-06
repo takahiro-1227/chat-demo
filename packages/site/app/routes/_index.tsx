@@ -10,19 +10,17 @@ export const meta: MetaFunction = () => {
 
 export default function Index() {
   return (
-    <div className="w-full flex justify-center">
-      <div className="max-w-lg w-full flex flex-col">
-        <h1>チャット!</h1>
+    <>
+      <h1 className="text-xl">チャット!</h1>
 
-        <ul>
-          <li>
-            <Link to={`/user/1/room/1`}>ユーザー1</Link>
-          </li>
-          <li>
-            <Link to={`/user/2/room/1`}>ユーザー2</Link>
-          </li>
-        </ul>
-      </div>
-    </div>
+      <ul className="mt-4">
+        <li>
+          <Link to={`/user/1/room/1`}>ユーザー1</Link>
+        </li>
+        <li>
+          <Link to={`/user/2/room/1`}>ユーザー2</Link>
+        </li>
+      </ul>
+    </>
   );
 }

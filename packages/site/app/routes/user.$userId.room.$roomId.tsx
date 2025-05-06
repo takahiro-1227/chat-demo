@@ -3,7 +3,7 @@ import clsx from "clsx";
 import { hc } from "hono/client";
 import { app, ReceivedMessage } from "../../../server";
 import { useState, ChangeEventHandler, useEffect } from "react";
-import { useLoaderData } from "@remix-run/react";
+import { useLoaderData, Link } from "@remix-run/react";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [{ title: `トーク - from ${data?.me.name} to ${data?.you.name}` }];
@@ -115,49 +115,48 @@ export default function Index() {
   };
 
   return (
-    <div className="w-full flex justify-center">
-      <div className="max-w-lg w-full flex flex-col">
-        <h1 className="text-xl">
-          チャット from {me.name} to {you.name}
-        </h1>
-        <div className="mt-4 w-full flex flex-col gap-2">
-          {messages.map(({ content, senderId }, i) => {
-            return (
-              <div
+    <>
+      <Link to="/">戻る</Link>
+      <h1 className="text-xl">
+        チャット from {me.name} to {you.name}
+      </h1>
+      <div className="mt-4 w-full flex flex-col gap-2">
+        {messages.map(({ content, senderId }, i) => {
+          return (
+            <div
+              key={`${content}-${i}`}
+              className={clsx({
+                ["flex"]: true,
+                ["text-left justify-start"]: senderId !== me.id,
+                ["text-right justify-end"]: senderId === me.id,
+              })}
+            >
+              <p
                 key={`${content}-${i}`}
                 className={clsx({
-                  ["flex"]: true,
-                  ["text-left justify-start"]: senderId !== me.id,
-                  ["text-right justify-end"]: senderId === me.id,
+                  ["border p-4 max-w-[50%] rounded-xl"]: true,
                 })}
               >
-                <p
-                  key={`${content}-${i}`}
-                  className={clsx({
-                    ["border p-4 max-w-[50%] rounded-xl"]: true,
-                  })}
-                >
-                  {content}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="mt-4 w-full flex gap-2">
-          <input
-            className="border w-full p-4 rounded-xl"
-            value={input}
-            onChange={inputMsg}
-          />
-          <button
-            className="text-nowrap border py-4 px-5 rounded-xl"
-            onClick={sendMsg}
-          >
-            送信
-          </button>
-        </div>
+                {content}
+              </p>
+            </div>
+          );
+        })}
       </div>
-    </div>
+
+      <div className="mt-4 w-full flex gap-2">
+        <input
+          className="border w-full p-4 rounded-xl"
+          value={input}
+          onChange={inputMsg}
+        />
+        <button
+          className="text-nowrap border py-4 px-5 rounded-xl"
+          onClick={sendMsg}
+        >
+          送信
+        </button>
+      </div>
+    </>
   );
 }

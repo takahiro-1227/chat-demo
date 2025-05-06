@@ -32,7 +32,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        {children}
+        <main className="w-full flex justify-center">
+          <div className="max-w-lg w-full flex flex-col pt-4 px-2">
+            {children}
+          </div>
+        </main>
         <ScrollRestoration />
         <Scripts />
       </body>
